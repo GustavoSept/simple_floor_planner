@@ -304,6 +304,12 @@ aside {
   cursor: grab;
 }
 
+/* drags must never start a browser text selection on plan labels */
+#canvas {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 #hud {
   position: absolute;
   inset: 0;
@@ -520,6 +526,19 @@ select,
   fill: var(--accent);
 }
 
+.ov-mid {
+  fill: var(--panel);
+  stroke: var(--accent);
+  stroke-width: 1.2px;
+  opacity: 0.65;
+  pointer-events: auto;
+  cursor: copy;
+}
+
+.ov-mid:hover {
+  opacity: 1;
+}
+
 .ov-radius {
   fill: var(--warn);
   stroke: var(--panel);
@@ -565,6 +584,11 @@ select,
 .ov-ghost-item {
   stroke: var(--accent);
   opacity: 0.75;
+}
+
+/* the overlay never blocks clicks on the scene — only its handles do */
+#overlay {
+  pointer-events: none;
 }
 
 /* entity hit helpers only respond where declared */

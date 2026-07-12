@@ -29,6 +29,7 @@ import {
   pickFile,
   printDoc,
   savePlan,
+  savePlanByName,
   serializeDoc,
   downloadFile,
 } from './io';
@@ -156,6 +157,7 @@ export function buildUI(app: AppApi): UIHandles {
   });
   menuItem('Save file (Ctrl+S)', () => {
     downloadFile(`${store.doc.name.replace(/[^\w\-. ]+/g, '') || 'floorplan'}.floorplan.json`, 'application/json', serializeDoc(store.doc));
+    savePlanByName(store.doc); // keep the browser copy in sync with the file
   });
   menuItem('My plans (browser)…', () => {
     renderPlansDialog();
@@ -680,7 +682,8 @@ export function buildUI(app: AppApi): UIHandles {
       ['D / N', 'Door · Window (hover a wall, click to place)'],
       ['I / M / A / T', 'Dimension · Tape measure · Area label · Text'],
       ['While drawing', 'Type a number + Enter for an exact length · Tab flips wall side · C closes · Esc cancels'],
-      ['Mouse', 'Wheel zooms · middle-drag or Space+drag pans · double-click an edge adds a vertex'],
+      ['Mouse', 'Wheel zooms · middle-drag or Space+drag pans'],
+      ['Add vertex', 'Select a shape, then drag the small ○ at an edge midpoint — or double-click the edge'],
       ['Selection', 'Shift+click adds · drag on empty space for marquee · Del deletes · Ctrl+D duplicates'],
       ['Q / E', 'Rotate selection 90° · drag the round top handle for free rotation (Alt = unsnapped)'],
       ['F / H', 'Mirror item / flip door swing · flip door hinge'],

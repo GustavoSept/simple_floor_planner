@@ -44,7 +44,7 @@ type Drag =
 export class SelectTool implements Tool {
   readonly id = 'select' as const;
   readonly hint =
-    'Click to select · drag to move · double-click an edge to add a vertex · Del deletes · Q/E rotates 90°';
+    'Click to select · drag to move · drag a ○ edge midpoint (or double-click an edge) to add a vertex · Del deletes · Q/E rotates 90°';
   private drag: Drag = { t: 'idle' };
   private base: Doc | null = null; // doc at drag start
   /** Active vertex of the single selected path (drives properties panel). */
@@ -78,6 +78,27 @@ export class SelectTool implements Tool {
         this.vertexSel = { entId: single, idx };
         this.drag = { t: 'vertex', entId: single, idx, moved: false };
         ctx.uiRefresh();
+        return;
+      }
+      if (h.startsWith('m:')) {
+        // midpoint handle: insert a vertex there and start dragging it
+        const seg = parseInt(h.slice(2), 10);
+        const ent = this.ent<PathEnt>(doc, single);
+        if (ent?.kind === 'path') {
+          const n = ent.vertices.length;
+          const a = ent.vertices[seg];
+          const b = ent.vertices[(seg + 1) % n];
+          const vertices = [...ent.vertices];
+          vertices.splice(seg + 1, 0, {
+            x: Math.round((a.x + b.x) / 2),
+            y: Math.round((a.y + b.y) / 2),
+          });
+          ctx.store.updateEntity<PathEnt>(single, { vertices });
+          this.base = ctx.store.doc;
+          this.vertexSel = { entId: single, idx: seg + 1 };
+          this.drag = { t: 'vertex', entId: single, idx: seg + 1, moved: false };
+          ctx.uiRefresh();
+        }
         return;
       }
       if (h.startsWith('r:')) {
@@ -332,7 +353,9 @@ export class SelectTool implements Tool {
   dbl(ev: ToolEvent): void {
     const ctx = this.ctx;
     const doc = ctx.store.doc;
-    const target = ev.e.target as Element;
+    // pointer capture retargets dblclick to the svg root, so hit-test by point
+    const target = (document.elementFromPoint(ev.e.clientX, ev.e.clientY) ??
+      ev.e.target) as Element;
     const entId = target.closest('.ent[data-id]')?.getAttribute('data-id');
     if (!entId || !editable(doc, entId)) return;
     const ent = this.ent(doc, entId);
@@ -527,10 +550,28 @@ export class SelectTool implements Tool {
     const single = ctx.sel.single;
     const singleEnt = single ? this.ent(doc, single) : null;
 
-    // vertex + radius handles for a single path
+    // vertex + midpoint + radius handles for a single path
     if (singleEnt?.kind === 'path') {
       const vts = singleEnt.vertices;
       const hs = px(5);
+      // midpoint handles insert a vertex; skip segments too short on screen
+      const n = vts.length;
+      const lastSeg = singleEnt.closed ? n : n - 1;
+      for (let i = 0; i < lastSeg; i++) {
+        const a = vts[i];
+        const b = vts[(i + 1) % n];
+        if (dist(a, b) < px(28)) continue;
+        g.appendChild(
+          el('circle', {
+            cx: (a.x + b.x) / 2,
+            cy: (a.y + b.y) / 2,
+            r: px(4),
+            class: 'ov-mid',
+            'data-handle': `m:${i}`,
+            'vector-effect': 'non-scaling-stroke',
+          }),
+        );
+      }
       vts.forEach((p, i) => {
         g.appendChild(
           el('rect', {

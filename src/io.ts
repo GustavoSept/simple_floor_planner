@@ -94,6 +94,12 @@ export function savePlan(doc: Doc, id?: string): PlanMeta {
   return meta;
 }
 
+/** Upsert by plan name — used when saving to file so the browser copy stays in sync. */
+export function savePlanByName(doc: Doc): PlanMeta {
+  const existing = listPlans().find((p) => p.name === doc.name);
+  return savePlan(doc, existing?.id);
+}
+
 export function loadPlan(id: string): Doc | null {
   const raw = localStorage.getItem(PLAN_PREFIX + id);
   if (!raw) return null;

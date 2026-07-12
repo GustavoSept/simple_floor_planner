@@ -143,11 +143,13 @@ export class TextTool implements Tool {
 
   constructor(private ctx: ToolCtx) {}
 
-  down(ev: ToolEvent): void {
+  // open the editor on pointerup: opening it on pointerdown would let the
+  // click's default focus action blur (and thus close) the editor instantly
+  up(ev: ToolEvent): void {
     if (ev.e.button !== 0) return;
     const p = snapFree(this.ctx, ev.raw, ev.e).p;
-    this.ctx.editText(null, p);
     this.ctx.setTool('select');
+    this.ctx.editText(null, p);
   }
 
   key(e: KeyboardEvent): boolean {

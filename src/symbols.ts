@@ -104,6 +104,29 @@ export const SYMBOLS: Record<string, SymbolDef> = {
     draw: (w, h) =>
       R(-w / 2, -h / 2 + h * 0.12, w, h * 0.88, 4) + L(-w / 2, -h / 2, w / 2, -h / 2),
   },
+  computer: {
+    name: 'Computer',
+    cat: 'furniture',
+    w: 110,
+    h: 50,
+    draw: (w, h) => {
+      const mw = w * 0.46; // each monitor
+      const md = Math.max(4, Math.min(6, h * 0.14));
+      const my = -h / 2 + md;
+      const tilt = 7; // monitors angled toward the user
+      const kw = w * 0.36;
+      const kh = Math.max(8, Math.min(14, h * 0.28));
+      const ky = h / 2 - kh - 2;
+      return (
+        R(-mw / 2, -md / 2, mw, md, 1, `transform="translate(${f(-w / 4)} ${f(my)}) rotate(${tilt})"`) +
+        R(-mw / 2, -md / 2, mw, md, 1, `transform="translate(${f(w / 4)} ${f(my)}) rotate(${-tilt})"`) +
+        L(-w / 4, my + md, -w / 4, my + md + 3) +
+        L(w / 4, my + md, w / 4, my + md + 3) +
+        R(-kw / 2, ky, kw, kh, 2) +
+        R(kw / 2 + Math.min(8, w * 0.07), ky + kh * 0.25, Math.min(8, w * 0.07), Math.min(11, kh * 0.8), 3)
+      );
+    },
+  },
   wardrobe: {
     name: 'Wardrobe',
     cat: 'furniture',

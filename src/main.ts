@@ -157,13 +157,14 @@ document.addEventListener('keydown', (e) => {
       duplicateSelection();
       e.preventDefault();
     } else if (k === 's') {
-      import('./io').then((io) =>
+      import('./io').then((io) => {
         io.downloadFile(
           `${store.doc.name.replace(/[^\w\-. ]+/g, '') || 'floorplan'}.floorplan.json`,
           'application/json',
           io.serializeDoc(store.doc),
-        ),
-      );
+        );
+        io.savePlanByName(store.doc); // keep the browser copy in sync with the file
+      });
       e.preventDefault();
     } else if (k === 'o') {
       import('./io').then(async (io) => {
