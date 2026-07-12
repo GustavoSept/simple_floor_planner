@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Floor Planner</title>
+  </head>
+  <body>
+    <div id="app">
+      <header id="topbar">
+        <div id="toolbar"></div>
+        <div id="topbar-right"></div>
+      </header>
+      <div id="main">
+        <aside id="library"></aside>
+        <div id="canvas-wrap">
+          <svg id="canvas">
+            <g id="world">
+              <g id="grid"></g>
+              <g id="scene"></g>
+              <g id="overlay"></g>
+            </g>
+          </svg>
+          <div id="hud"></div>
+          <footer id="statusbar">
+            <span id="hint"></span>
+            <div id="status-toggles"></div>
+            <span id="coords"></span>
+          </footer>
+        </div>
+        <aside id="sidebar">
+          <div id="props"></div>
+          <div id="layers"></div>
+        </aside>
+      </div>
+    </div>
+    <dialog id="dlg-settings"></dialog>
+    <dialog id="dlg-plans"></dialog>
+    <dialog id="dlg-export"></dialog>
+    <dialog id="dlg-print"></dialog>
+    <dialog id="dlg-help"></dialog>
+    <div id="print-host"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
