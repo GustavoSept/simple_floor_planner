@@ -42,6 +42,12 @@ export interface OpeningGeom {
 export function openingGeom(doc: Doc, o: OpeningEnt): OpeningGeom | null {
   const wall = doc.entities.find((e) => e.id === o.wallId);
   if (!wall || wall.kind !== 'path' || !wall.wall) return null;
+  return openingGeomOn(wall, o);
+}
+
+/** Opening geometry against a resolved wall (bypasses the doc id lookup). */
+export function openingGeomOn(wall: PathEnt, o: OpeningEnt): OpeningGeom | null {
+  if (!wall.wall) return null;
   const center = wallCenterline(wall);
   const n = center.length;
   if (o.seg < 0 || o.seg >= (wall.closed ? n : n - 1)) return null;
@@ -53,6 +59,50 @@ export function openingGeom(doc: Doc, o: OpeningEnt): OpeningGeom | null {
   const t = Math.max(o.width / 2, Math.min(segLen - o.width / 2, o.t));
   const c = add(a, mul(dir, t));
   return { c, dir, n: perp(dir), thickness: wall.wall.thickness, segA: a, segB: b };
+}
+
+/** The (seg, t) on a wall's centerline whose point is closest to world point `c`. */
+export function anchorOnWall(wall: PathEnt, c: Vec): { seg: number; t: number } {
+  const center = wallCenterline(wall);
+  const n = center.length;
+  const last = wall.closed ? n : n - 1;
+  let best = { seg: 0, t: 0, d: Infinity };
+  for (let i = 0; i < last; i++) {
+    const a = center[i];
+    const b = center[(i + 1) % n];
+    const r = pointSeg(c, a, b);
+    if (r.d < best.d) best = { seg: i, t: r.t * dist(a, b), d: r.d };
+  }
+  return { seg: best.seg, t: Math.round(best.t) };
+}
+
+/**
+ * Replace a wall path's vertices, re-anchoring every opening on that wall so it
+ * keeps its physical position. Openings reference wall segments by index, so a
+ * bare vertex insert/delete shifts them onto the wrong segment — they must be
+ * re-anchored against the wall's world geometry, or the plan (and any file
+ * saved from it) ends up with doors/windows in the wrong place.
+ */
+export function setWallVertices(entities: Entity[], wallId: string, vertices: Vertex[]): Entity[] {
+  const wall = entities.find((e) => e.id === wallId);
+  if (!wall || wall.kind !== 'path') return entities;
+  const newWall: PathEnt = { ...wall, vertices };
+  // Capture each opening's world center against the OLD geometry first.
+  const centers = new Map<string, Vec>();
+  if (wall.wall) {
+    for (const e of entities) {
+      if (e.kind !== 'opening' || e.wallId !== wallId) continue;
+      const g = openingGeomOn(wall, e);
+      if (g) centers.set(e.id, g.c);
+    }
+  }
+  return entities.map((e) => {
+    if (e.id === wallId) return newWall;
+    if (e.kind !== 'opening' || e.wallId !== wallId || !newWall.wall) return e;
+    const c = centers.get(e.id);
+    if (!c) return e;
+    return { ...e, ...anchorOnWall(newWall, c) };
+  });
 }
 
 /** All points that outline a path entity (incl. wall faces), flattened. */

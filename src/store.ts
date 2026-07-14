@@ -1,6 +1,7 @@
 import { BehaviorSubject } from 'rxjs';
-import type { Doc, Entity, LayerId } from './types';
+import type { Doc, Entity, LayerId, Vertex } from './types';
 import { emptyDoc } from './types';
+import { setWallVertices } from './entity';
 
 const HISTORY_LIMIT = 100;
 
@@ -81,6 +82,17 @@ export class Store {
     const d = this.doc;
     const entities = d.entities.map((e) => (e.id === id ? ({ ...e, ...patch } as Entity) : e));
     const doc = { ...d, entities };
+    if (opts?.preview) this.preview(doc);
+    else this.commit(doc);
+  }
+
+  /**
+   * Replace a path's vertices. For walls this re-anchors any openings so they
+   * keep their world position (segment indices shift on vertex insert/delete).
+   */
+  updatePathVertices(wallId: string, vertices: Vertex[], opts?: { preview?: boolean }): void {
+    const d = this.doc;
+    const doc = { ...d, entities: setWallVertices(d.entities, wallId, vertices) };
     if (opts?.preview) this.preview(doc);
     else this.commit(doc);
   }

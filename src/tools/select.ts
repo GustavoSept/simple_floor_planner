@@ -93,7 +93,7 @@ export class SelectTool implements Tool {
             x: Math.round((a.x + b.x) / 2),
             y: Math.round((a.y + b.y) / 2),
           });
-          ctx.store.updateEntity<PathEnt>(single, { vertices });
+          ctx.store.updatePathVertices(single, vertices);
           this.base = ctx.store.doc;
           this.vertexSel = { entId: single, idx: seg + 1 };
           this.drag = { t: 'vertex', entId: single, idx: seg + 1, moved: false };
@@ -383,7 +383,7 @@ export class SelectTool implements Tool {
       if (bestI < 0) return;
       const vertices = [...vts];
       vertices.splice(bestI + 1, 0, { x: Math.round(bestP.x), y: Math.round(bestP.y) });
-      ctx.store.updateEntity<PathEnt>(entId, { vertices });
+      ctx.store.updatePathVertices(entId, vertices);
       ctx.sel.set([entId]);
       this.vertexSel = { entId, idx: bestI + 1 };
       ctx.uiRefresh();
@@ -475,7 +475,7 @@ export class SelectTool implements Tool {
       ctx.sel.clear();
     } else {
       const vertices = ent.vertices.filter((_, i) => i !== idx);
-      ctx.store.updateEntity<PathEnt>(entId, { vertices });
+      ctx.store.updatePathVertices(entId, vertices);
     }
     this.vertexSel = null;
     ctx.uiRefresh();
