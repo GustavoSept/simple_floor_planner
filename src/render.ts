@@ -288,6 +288,7 @@ function buildOpening(doc: Doc, e: OpeningEnt, o: RenderOpts): SVGGElement | nul
 
 function buildItem(doc: Doc, e: ItemEnt, o: RenderOpts): SVGGElement {
   const color = layerColor(o.palette, e.layer);
+  const outer = el('g');
   const g = el('g', {
     transform:
       `translate(${e.x.toFixed(2)} ${e.y.toFixed(2)}) rotate(${e.rotation})` +
@@ -299,6 +300,7 @@ function buildItem(doc: Doc, e: ItemEnt, o: RenderOpts): SVGGElement {
     'stroke-linejoin': 'round',
     'stroke-linecap': 'round',
   });
+  outer.appendChild(g);
   const def = SYMBOLS[e.item];
   if (def) {
     g.innerHTML = def.draw(e.w, e.h);
@@ -335,7 +337,31 @@ function buildItem(doc: Doc, e: ItemEnt, o: RenderOpts): SVGGElement {
       }),
     );
   }
-  return g;
+  if (e.label && doc.layers.annotations?.visible) {
+    const labelColor = layerColor(o.palette, 'annotations');
+    outer.appendChild(
+      el(
+        'text',
+        {
+          x: e.x,
+          y: e.y,
+          'text-anchor': 'middle',
+          'dominant-baseline': 'central',
+          'font-size': 11,
+          'font-weight': 700,
+          fill: labelColor,
+          'fill-opacity': 0.8,
+          stroke: o.palette.paper,
+          'stroke-width': 2.5,
+          'stroke-linejoin': 'round',
+          'paint-order': 'stroke fill',
+          'pointer-events': 'none',
+        },
+        e.label,
+      ),
+    );
+  }
+  return outer;
 }
 
 const DIM_TEXT = 15; // cm

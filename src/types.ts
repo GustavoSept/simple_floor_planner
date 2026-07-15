@@ -74,6 +74,7 @@ export interface ItemEnt extends EntityBase {
   h: number; // cm
   rotation: number; // degrees, clockwise on screen
   flip: boolean; // mirror along local x before rotation
+  label?: string; // optional caption, e.g. to relabel a stand-in symbol as a different object
 }
 
 export interface OpeningEnt extends EntityBase {

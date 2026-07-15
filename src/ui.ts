@@ -547,6 +547,11 @@ export function buildUI(app: AppApi): UIHandles {
     const def = SYMBOLS[ent.item];
     const custom = ent.item.startsWith('custom:') ? store.doc.customItems[ent.item.slice(7)] : undefined;
     propsEl.appendChild(h('div', { class: 'prop-info' }, def?.name ?? custom?.name ?? 'Object'));
+    const labelInp = textInput(ent.label ?? '', (s) =>
+      store.updateEntity<ItemEnt>(ent.id, { label: s.trim() ? s : undefined }),
+    );
+    labelInp.placeholder = def?.name ?? custom?.name ?? '';
+    propsEl.appendChild(row('Label', labelInp));
     propsEl.appendChild(row(`Width (${unitSuffix()})`, lenInput(ent.w, (cm) => store.updateEntity<ItemEnt>(ent.id, { w: cm }), { min: 1 })));
     propsEl.appendChild(row(`Depth (${unitSuffix()})`, lenInput(ent.h, (cm) => store.updateEntity<ItemEnt>(ent.id, { h: cm }), { min: 1 })));
     propsEl.appendChild(row('Rotation (°)', numInput(ent.rotation, (n) => store.updateEntity<ItemEnt>(ent.id, { rotation: n }))));

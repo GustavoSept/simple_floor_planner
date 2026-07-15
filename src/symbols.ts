@@ -104,6 +104,30 @@ export const SYMBOLS: Record<string, SymbolDef> = {
     draw: (w, h) =>
       R(-w / 2, -h / 2 + h * 0.12, w, h * 0.88, 4) + L(-w / 2, -h / 2, w / 2, -h / 2),
   },
+  office_chair: {
+    name: 'Office chair',
+    cat: 'furniture',
+    w: 60,
+    h: 60,
+    draw: (w, h) => {
+      const baseR = Math.min(w, h) / 2; // reach of the 5-star base to its casters
+      const hubR = baseR * 0.13;
+      const casterR = baseR * 0.1;
+      const seatR = baseR * 0.6;
+      const backW = seatR * 1.5;
+      const backY = -seatR - Math.min(9, h * 0.14);
+      let s = '';
+      for (let i = 0; i < 5; i++) {
+        const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+        const ex = Math.cos(a) * baseR;
+        const ey = Math.sin(a) * baseR;
+        s += L(0, 0, ex * 0.82, ey * 0.82) + C(ex, ey, casterR);
+      }
+      s += C(0, 0, hubR) + C(0, 0, seatR);
+      s += P(`M ${f(-backW / 2)} ${f(backY)} A ${f(backW / 2)} ${f(backW / 2)} 0 0 0 ${f(backW / 2)} ${f(backY)}`);
+      return s;
+    },
+  },
   computer: {
     name: 'Computer',
     cat: 'furniture',
@@ -133,6 +157,28 @@ export const SYMBOLS: Record<string, SymbolDef> = {
     w: 150,
     h: 60,
     draw: (w, h) => R(-w / 2, -h / 2, w, h) + L(-w / 2, 0, w / 2, 0) + L(0, -h / 2, 0, h / 2),
+  },
+  corner_wardrobe: {
+    name: 'Corner wardrobe',
+    cat: 'furniture',
+    w: 105,
+    h: 105,
+    draw: (w, h) => {
+      // square footprint flush against two walls (top, left); the outer corner is
+      // chamfered so the two remaining free edges are ~56cm — the accessible front.
+      const straight = 56;
+      const legW = Math.max(0, w - straight);
+      const legH = Math.max(0, h - straight);
+      const p1 = { x: -w / 2, y: -h / 2 };
+      const p2 = { x: w / 2, y: -h / 2 };
+      const p3 = { x: w / 2, y: h / 2 - legH };
+      const p4 = { x: w / 2 - legW, y: h / 2 };
+      const p5 = { x: -w / 2, y: h / 2 };
+      const outline =
+        `M ${f(p1.x)} ${f(p1.y)} L ${f(p2.x)} ${f(p2.y)} L ${f(p3.x)} ${f(p3.y)} ` +
+        `L ${f(p4.x)} ${f(p4.y)} L ${f(p5.x)} ${f(p5.y)} Z`;
+      return P(outline) + L(p1.x, p1.y, (p3.x + p4.x) / 2, (p3.y + p4.y) / 2);
+    },
   },
   stairs: {
     name: 'Stairs',
