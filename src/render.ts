@@ -26,7 +26,7 @@ import {
   wallInnerFace,
   type BBox,
 } from './geom';
-import { openingGeom } from './entity';
+import { openingGeom, openingTotalWidth } from './entity';
 import { SYMBOLS } from './symbols';
 import type { ViewState } from './view';
 
@@ -222,7 +222,7 @@ function buildOpening(doc: Doc, e: OpeningEnt, o: RenderOpts): SVGGElement | nul
   const g0 = openingGeom(doc, e);
   if (!g0) return null;
   const { c, dir, n, thickness } = g0;
-  const hw = e.width / 2;
+  const hw = openingTotalWidth(e) / 2;
   const ht = thickness / 2 + 0.8;
   const g = el('g');
   const corner = (sd: number, sn: number) => add(add(c, mul(dir, sd * hw)), mul(n, sn * ht));
@@ -369,7 +369,7 @@ function buildDim(e: DimEnt, o: RenderOpts): SVGGElement {
   deg = ((deg % 360) + 360) % 360;
   const mid = lerp(A, B, 0.5);
   const tp = add(mid, mul(perp(rdir), -6));
-  const label = formatLen(dist(e.a, e.b), o.unit);
+  const label = formatLen(dist(e.a, e.b), o.unit, e.precision);
   g.appendChild(
     el(
       'text',

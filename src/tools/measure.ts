@@ -98,7 +98,7 @@ export class TapeTool implements Tool {
     if (!this.a || !this.cur) return;
     ovLine(ctx.overlay, this.a, this.cur.p, 'ov-tape');
     const mid = { x: (this.a.x + this.cur.p.x) / 2, y: (this.a.y + this.cur.p.y) / 2 };
-    chip(ctx, mid, formatLen(dist(this.a, this.cur.p), ctx.settings.value.unit));
+    chip(ctx, mid, formatLen(dist(this.a, this.cur.p), ctx.settings.value.unit, ctx.defaults.tapePrecision));
   }
 }
 
@@ -141,6 +141,7 @@ export class DimTool implements Tool {
         a: this.a,
         b: this.b,
         offset: this.offset,
+        precision: this.ctx.defaults.dimPrecision,
       };
       this.ctx.store.addEntity(ent);
       this.reset();
@@ -187,7 +188,7 @@ export class DimTool implements Tool {
       ovLine(ctx.overlay, end, B, 'ov-ghost');
     }
     const mid = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
-    chip(ctx, mid, formatLen(dist(this.a, end), ctx.settings.value.unit));
+    chip(ctx, mid, formatLen(dist(this.a, end), ctx.settings.value.unit, ctx.defaults.dimPrecision));
   }
 }
 

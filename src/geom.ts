@@ -282,9 +282,13 @@ export function snapAngleRad(ang: number, stepDeg: number): number {
   return Math.round(ang / step) * step;
 }
 
-export function formatLen(cm: number, unit: 'm' | 'cm'): string {
-  if (unit === 'cm') return `${Math.round(cm * 10) / 10} cm`;
-  return `${(cm / 100).toFixed(2)} m`;
+/** `precision` is the number of decimal digits shown; omit to keep the fixed display used everywhere except configurable measuring tools. */
+export function formatLen(cm: number, unit: 'm' | 'cm', precision?: number): string {
+  if (unit === 'cm') {
+    const f = 10 ** (precision ?? 1);
+    return `${Math.round(cm * f) / f} cm`;
+  }
+  return `${(cm / 100).toFixed(precision ?? 2)} m`;
 }
 
 export function formatArea(cm2: number): string {

@@ -35,6 +35,10 @@ export class OpeningTool implements Tool {
     return this.id === 'door' ? this.ctx.defaults.doorWidth : this.ctx.defaults.windowWidth;
   }
 
+  private padding(): number {
+    return this.id === 'door' ? this.ctx.defaults.doorPadding : 0;
+  }
+
   move(ev: ToolEvent): void {
     const pl = nearestWallPlacement(this.ctx.store.doc, ev.raw, tol(this.ctx) * 3);
     this.hover = pl;
@@ -54,6 +58,7 @@ export class OpeningTool implements Tool {
       seg: pl.seg,
       t: Math.round(pl.t),
       width: this.width(),
+      padding: this.id === 'door' ? this.padding() : undefined,
       hinge: 1,
       swing: this.hoverSide,
     };
@@ -94,11 +99,12 @@ export class OpeningTool implements Tool {
     const pl = this.hover;
     const centerA = pl.q;
     const width = this.width();
-    // ghost rectangle across the wall
+    const padding = this.padding();
+    // ghost rectangle across the wall (leaf + frame padding)
     const wall = pl.wall.wall!;
     const segDir = this.segDir(pl);
     const n = perp(segDir);
-    const hw = width / 2;
+    const hw = width / 2 + padding;
     const ht = wall.thickness / 2;
     const c = centerA;
     const pts = [
@@ -114,7 +120,13 @@ export class OpeningTool implements Tool {
         'vector-effect': 'non-scaling-stroke',
       }),
     );
-    chip(ctx, c, `${this.id === 'door' ? 'Door' : 'Window'} ${Math.round(width)} cm`);
+    const label =
+      this.id === 'door'
+        ? padding
+          ? `Door ${Math.round(width)} cm (+${Math.round(padding)} cm batente) = ${Math.round(width + padding * 2)} cm`
+          : `Door ${Math.round(width)} cm`
+        : `Window ${Math.round(width)} cm`;
+    chip(ctx, c, label);
   }
 
   private segDir(pl: WallPlacement) {

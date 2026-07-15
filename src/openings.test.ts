@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { openingGeom, setWallVertices } from './entity';
+import { openingGeom, openingTotalWidth, setWallVertices } from './entity';
 import { serializeDoc, parseDoc } from './io';
 import { emptyDoc } from './types';
 import type { Doc, OpeningEnt, PathEnt, Vertex } from './types';
@@ -118,5 +118,31 @@ describe('doc round-trip preserves opening placement', () => {
     const doc = docOf(WALL, DOOR, WINDOW);
     const loaded = parseDoc(serializeDoc(doc));
     expect(centers(loaded)).toEqual(centers(doc));
+  });
+});
+
+describe('door frame padding ("batente")', () => {
+  it('is excluded from the leaf width but included in the total footprint', () => {
+    const withPadding: OpeningEnt = { ...DOOR, width: 82, padding: 6 };
+    expect(openingTotalWidth(withPadding)).toBe(94);
+    expect(openingTotalWidth(DOOR)).toBe(DOOR.width); // no padding set: leaf width only
+  });
+
+  it('does not apply to windows even if the field were set', () => {
+    const win: OpeningEnt = { ...WINDOW, padding: 6 };
+    expect(openingTotalWidth(win)).toBe(WINDOW.width);
+  });
+
+  it('widens the clamp near a segment end so the frame stays on the wall', () => {
+    // request a `t` far past the segment end so both doors clamp against it
+    const noPad: OpeningEnt = { ...DOOR, t: 10000, width: 82 };
+    const padded: OpeningEnt = { ...DOOR, t: 10000, width: 82, padding: 6 };
+    const doc = docOf(WALL, noPad, padded);
+    const gNoPad = openingGeom(doc, noPad)!;
+    const gPadded = openingGeom(doc, padded)!;
+    // the padded frame must sit an extra `padding` cm further from the corner
+    // so its 6cm batente doesn't overhang past the wall end
+    const shift = Math.hypot(gPadded.c.x - gNoPad.c.x, gPadded.c.y - gNoPad.c.y);
+    expect(shift).toBeCloseTo(6, 5);
   });
 });

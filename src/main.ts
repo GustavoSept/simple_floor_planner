@@ -32,9 +32,12 @@ const defaults: ToolDefaults = {
   wallThickness: 15,
   wallAlign: 'edge',
   wallSide: 1,
-  doorWidth: 80,
+  doorWidth: 82,
+  doorPadding: 6,
   windowWidth: 150,
   textSize: 22,
+  dimPrecision: 2,
+  tapePrecision: 2,
 };
 
 let ui: UIHandles | null = null;

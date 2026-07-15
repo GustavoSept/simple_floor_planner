@@ -82,7 +82,8 @@ export interface OpeningEnt extends EntityBase {
   wallId: string;
   seg: number; // wall segment index: vertices[seg] -> vertices[seg+1]
   t: number; // cm from segment start to opening center, measured on the centerline
-  width: number; // cm
+  width: number; // cm; the door leaf / window sash size (excludes frame padding)
+  padding?: number; // cm, door only: frame ("batente") width added on each side of `width`
   hinge: 1 | -1; // door: hinge at segment-start end (1) or far end (-1)
   swing: 1 | -1; // door: which side of the wall it swings toward
 }
@@ -92,6 +93,7 @@ export interface DimEnt extends EntityBase {
   a: Vec;
   b: Vec;
   offset: number; // signed perpendicular offset of the dimension line, cm
+  precision?: number; // decimal digits shown in the label; defaults to 2
 }
 
 export interface TextEnt extends EntityBase {

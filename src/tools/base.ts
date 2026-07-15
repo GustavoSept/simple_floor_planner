@@ -25,8 +25,11 @@ export interface ToolDefaults {
   wallAlign: 'edge' | 'center';
   wallSide: 1 | -1;
   doorWidth: number;
+  doorPadding: number; // cm, "batente" frame width added on each side of the door leaf
   windowWidth: number;
   textSize: number;
+  dimPrecision: number; // decimal digits for new dimension lines
+  tapePrecision: number; // decimal digits for the tape measure readout
 }
 
 export interface ToolCtx {

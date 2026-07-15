@@ -30,6 +30,11 @@ export function itemCorners(it: ItemEnt): Vec[] {
   ].map((p) => rotateAround(add(c, p), c, it.rotation));
 }
 
+/** Door leaf width plus its frame ("batente") padding on both sides; windows have no padding. */
+export function openingTotalWidth(o: OpeningEnt): number {
+  return o.width + (o.opening === 'door' ? (o.padding ?? 0) * 2 : 0);
+}
+
 export interface OpeningGeom {
   c: Vec; // opening center on the wall centerline
   dir: Vec; // unit vector along the wall segment
@@ -56,7 +61,8 @@ export function openingGeomOn(wall: PathEnt, o: OpeningEnt): OpeningGeom | null 
   const segLen = dist(a, b);
   if (segLen < 1) return null;
   const dir = norm(sub(b, a));
-  const t = Math.max(o.width / 2, Math.min(segLen - o.width / 2, o.t));
+  const half = openingTotalWidth(o) / 2;
+  const t = Math.max(half, Math.min(segLen - half, o.t));
   const c = add(a, mul(dir, t));
   return { c, dir, n: perp(dir), thickness: wall.wall.thickness, segA: a, segB: b };
 }
@@ -124,7 +130,7 @@ export function entityBBox(doc: Doc, e: Entity): BBox | null {
     case 'opening': {
       const g = openingGeom(doc, e);
       if (!g) return null;
-      const hw = e.width / 2;
+      const hw = openingTotalWidth(e) / 2;
       const ht = g.thickness / 2;
       const ext = e.opening === 'door' ? e.width : ht;
       return bboxOf([

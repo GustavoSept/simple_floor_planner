@@ -1,6 +1,7 @@
 import type {
   AreaLabelEnt,
   CustomItemDef,
+  DimEnt,
   Doc,
   ItemEnt,
   OpeningEnt,
@@ -293,6 +294,20 @@ export function buildUI(app: AppApi): UIHandles {
     return inp;
   }
 
+  function precisionInput(value: number, onCommit: (n: number) => void): HTMLInputElement {
+    const inp = h('input', { type: 'number', class: 'prop-input', min: '0', max: '6', step: '1' });
+    inp.value = String(value);
+    inp.onchange = () => {
+      const n = Math.round(Number(inp.value));
+      if (!isFinite(n) || n < 0 || n > 6) {
+        inp.value = String(value);
+        return;
+      }
+      onCommit(n);
+    };
+    return inp;
+  }
+
   function textInput(value: string, onCommit: (s: string) => void): HTMLInputElement {
     const inp = h('input', { type: 'text', class: 'prop-input wide' });
     inp.value = value;
@@ -348,6 +363,9 @@ export function buildUI(app: AppApi): UIHandles {
         break;
       case 'dim':
         propsEl.appendChild(h('div', { class: 'prop-info' }, 'Dimension line — drag it to change its offset; drag its endpoints to re-measure.'));
+        propsEl.appendChild(
+          row('Decimal places', precisionInput(ent.precision ?? 2, (n) => store.updateEntity<DimEnt>(ent.id, { precision: n }))),
+        );
         break;
     }
   }
@@ -384,10 +402,33 @@ export function buildUI(app: AppApi): UIHandles {
       propsEl.appendChild(h('div', { class: 'prop-info' }, toolId === 'door' ? 'Door placement' : 'Window placement'));
       const key = toolId === 'door' ? 'doorWidth' : 'windowWidth';
       propsEl.appendChild(row(`Width (${unitSuffix()})`, lenInput(d[key], (cm) => (d[key] = cm), { min: 20 })));
+      if (toolId === 'door') {
+        propsEl.appendChild(
+          row(`Frame padding (${unitSuffix()})`, lenInput(d.doorPadding, (cm) => (d.doorPadding = cm), { min: 0 })),
+        );
+        propsEl.appendChild(
+          h('div', { class: 'prop-hint' }, 'Batente added on each side of the leaf, so the wall opening is wider than the door itself.'),
+        );
+      }
       return;
     }
     if (toolId === 'text') {
       propsEl.appendChild(row(`Text size (${unitSuffix()})`, lenInput(d.textSize, (cm) => (d.textSize = cm), { min: 5 })));
+      return;
+    }
+    if (toolId === 'dim') {
+      propsEl.appendChild(h('div', { class: 'prop-info' }, 'Dimension line'));
+      propsEl.appendChild(
+        row('Decimal places', precisionInput(d.dimPrecision, (n) => (d.dimPrecision = n))),
+      );
+      propsEl.appendChild(h('div', { class: 'prop-hint' }, 'Applied to new dimension lines; each one can be adjusted afterward.'));
+      return;
+    }
+    if (toolId === 'tape') {
+      propsEl.appendChild(h('div', { class: 'prop-info' }, 'Tape measure'));
+      propsEl.appendChild(
+        row('Decimal places', precisionInput(d.tapePrecision, (n) => (d.tapePrecision = n))),
+      );
       return;
     }
     propsEl.appendChild(h('div', { class: 'prop-info dim' }, 'Nothing selected'));
@@ -500,6 +541,15 @@ export function buildUI(app: AppApi): UIHandles {
     propsEl.appendChild(h('div', { class: 'prop-info' }, ent.opening === 'door' ? 'Door' : 'Window'));
     propsEl.appendChild(row(`Width (${unitSuffix()})`, lenInput(ent.width, (cm) => store.updateEntity<OpeningEnt>(ent.id, { width: cm }), { min: 10 })));
     if (ent.opening === 'door') {
+      propsEl.appendChild(
+        row(
+          `Frame padding (${unitSuffix()})`,
+          lenInput(ent.padding ?? 0, (cm) => store.updateEntity<OpeningEnt>(ent.id, { padding: cm > 0 ? cm : undefined }), { min: 0 }),
+        ),
+      );
+      propsEl.appendChild(
+        h('div', { class: 'prop-hint' }, `Batente added on each side of the leaf. Total wall opening: ${formatLen(ent.width + (ent.padding ?? 0) * 2, settings.value.unit)}.`),
+      );
       propsEl.appendChild(row('', actionBtn('Flip swing side (F)', () => store.updateEntity<OpeningEnt>(ent.id, { swing: ent.swing === 1 ? -1 : 1 }))));
       propsEl.appendChild(row('', actionBtn('Flip hinge end (H)', () => store.updateEntity<OpeningEnt>(ent.id, { hinge: ent.hinge === 1 ? -1 : 1 }))));
     }
