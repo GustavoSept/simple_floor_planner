@@ -1,4 +1,4 @@
-import type { DimEnt, Doc, Entity, ItemEnt, OpeningEnt, PathEnt, Vec } from '../types';
+import type { AngleEnt, DimEnt, Doc, Entity, ItemEnt, OpeningEnt, PathEnt, Vec } from '../types';
 import {
   add,
   bboxIntersects,
@@ -22,6 +22,8 @@ import {
   chip,
   clearHud,
   editable,
+  ovAlignGuide,
+  ovDot,
   ovSnap,
   snapMoveFree,
   tol,
@@ -29,6 +31,7 @@ import {
   type ToolCtx,
   type ToolEvent,
 } from './base';
+import { alignRefVertices, alignSnap, type AlignGuide, type SnapHit } from '../snap';
 
 type Drag =
   | { t: 'idle' }
@@ -39,7 +42,9 @@ type Drag =
   | { t: 'rotate'; center: Vec; startAng: number; moved: boolean }
   | { t: 'opening'; entId: string; moved: boolean }
   | { t: 'dimoff'; entId: string; moved: boolean }
-  | { t: 'dimend'; entId: string; which: 'a' | 'b'; moved: boolean };
+  | { t: 'dimend'; entId: string; which: 'a' | 'b'; moved: boolean }
+  | { t: 'angleoff'; entId: string; moved: boolean }
+  | { t: 'angleend'; entId: string; which: 'vertex' | 'a' | 'b'; moved: boolean };
 
 export class SelectTool implements Tool {
   readonly id = 'select' as const;
@@ -49,12 +54,18 @@ export class SelectTool implements Tool {
   private base: Doc | null = null; // doc at drag start
   /** Active vertex of the single selected path (drives properties panel). */
   vertexSel: { entId: string; idx: number } | null = null;
+  /** Align-snap guides live during a vertex drag; drawn by renderOverlay. */
+  private alignGuides: AlignGuide[] = [];
+  /** Latest snap hit while dragging a vertex/endpoint; drawn by renderOverlay. */
+  private snapHit: SnapHit | null = null;
 
   constructor(private ctx: ToolCtx) {}
 
   deactivate(): void {
     this.drag = { t: 'idle' };
     this.vertexSel = null;
+    this.alignGuides = [];
+    this.snapHit = null;
     clearHud(this.ctx);
   }
 
@@ -111,6 +122,15 @@ export class SelectTool implements Tool {
         this.drag = { t: 'dimend', entId: single, which: h === 'dima' ? 'a' : 'b', moved: false };
         return;
       }
+      if (h.startsWith('ang:')) {
+        const which = h.slice(4) as 'vertex' | 'a' | 'b';
+        this.drag = { t: 'angleend', entId: single, which, moved: false };
+        return;
+      }
+      if (h === 'angoff') {
+        this.drag = { t: 'angleoff', entId: single, moved: false };
+        return;
+      }
     }
     if (handleEl?.getAttribute('data-handle') === 'rot' && ctx.sel.ids.size) {
       const b = this.selectionBBox(doc);
@@ -145,6 +165,8 @@ export class SelectTool implements Tool {
         this.drag = { t: 'opening', entId, moved: false };
       } else if (ent.kind === 'dim' && ctx.sel.single === entId) {
         this.drag = { t: 'dimoff', entId, moved: false };
+      } else if (ent.kind === 'angle' && ctx.sel.single === entId) {
+        this.drag = { t: 'angleoff', entId, moved: false };
       } else {
         this.drag = {
           t: 'move',
@@ -180,7 +202,9 @@ export class SelectTool implements Tool {
             ? [{ x: e.x, y: e.y }]
             : e.kind === 'dim'
               ? [e.a, e.b]
-              : [];
+              : e.kind === 'angle'
+                ? [e.vertex, e.a, e.b]
+                : [];
       for (const p of pts) {
         const d = dist(grab, p);
         if (d < bestD) {
@@ -224,10 +248,20 @@ export class SelectTool implements Tool {
         if (!ent) return;
         const anchor = ent.vertices[d.idx];
         const hit = snapMoveFree(ctx, anchor, ev.raw, ev.e, new Set([d.entId]));
+        let p = hit.p;
+        this.alignGuides = [];
+        this.snapHit = hit;
+        const align = ctx.settings.value.alignSnap;
+        if (align !== 'off' && hit.kind !== 'vertex' && hit.kind !== 'edge') {
+          const refs = alignRefVertices(ent.vertices, d.idx, ent.closed, align);
+          const a = alignSnap(p, refs, tol(ctx));
+          if (a.guides.length) {
+            p = a.p;
+            this.alignGuides = a.guides;
+          }
+        }
         d.moved = true;
-        const vertices = ent.vertices.map((v0, i) =>
-          i === d.idx ? { ...v0, x: hit.p.x, y: hit.p.y } : v0,
-        );
+        const vertices = ent.vertices.map((v0, i) => (i === d.idx ? { ...v0, x: p.x, y: p.y } : v0));
         this.previewPatch(base, d.entId, { vertices });
         // show the lengths of the two adjacent segments
         const n = vertices.length;
@@ -236,7 +270,7 @@ export class SelectTool implements Tool {
           parts.push(formatLen(dist(vertices[(d.idx - 1 + n) % n], vertices[d.idx]), unit));
         if (ent.closed || d.idx < n - 1)
           parts.push(formatLen(dist(vertices[d.idx], vertices[(d.idx + 1) % n]), unit));
-        chip(ctx, hit.p, parts.join(' · '));
+        chip(ctx, p, parts.join(' · '));
         return;
       }
       case 'radius': {
@@ -309,8 +343,24 @@ export class SelectTool implements Tool {
         const hit = snapMoveFree(ctx, ent[d.which], ev.raw, ev.e);
         d.moved = true;
         this.previewPatch(base, d.entId, { [d.which]: hit.p } as Partial<DimEnt>);
-        this.ctx.overlay.querySelectorAll('.ov-snap').forEach((n) => n.remove());
-        ovSnap(this.ctx.overlay, hit, this.ctx.view.view.scale);
+        this.snapHit = hit;
+        return;
+      }
+      case 'angleend': {
+        const ent = this.ent<AngleEnt>(base, d.entId);
+        if (!ent) return;
+        const hit = snapMoveFree(ctx, ent[d.which], ev.raw, ev.e);
+        d.moved = true;
+        this.previewPatch(base, d.entId, { [d.which]: hit.p } as Partial<AngleEnt>);
+        this.snapHit = hit;
+        return;
+      }
+      case 'angleoff': {
+        const ent = this.ent<AngleEnt>(base, d.entId);
+        if (!ent) return;
+        const r = Math.max(10, Math.round(dist(ev.raw, ent.vertex)));
+        d.moved = true;
+        this.previewPatch(base, d.entId, { radius: r });
         return;
       }
     }
@@ -350,6 +400,8 @@ export class SelectTool implements Tool {
     }
     this.drag = { t: 'idle' };
     this.base = null;
+    this.alignGuides = [];
+    this.snapHit = null;
     clearHud(ctx);
     ctx.requestRender();
   }
@@ -504,6 +556,22 @@ export class SelectTool implements Tool {
     const scale = ctx.view.view.scale;
     const px = (n: number) => n / scale;
 
+    if (this.drag.t === 'vertex') {
+      for (const guide of this.alignGuides) ovAlignGuide(ctx, guide);
+    }
+
+    if (this.drag.t === 'vertex' || this.drag.t === 'dimend' || this.drag.t === 'angleend') {
+      if (ctx.settings.value.measureSnap !== 'off') {
+        for (const e of doc.entities) {
+          if (e.kind !== 'dim') continue;
+          if (!doc.layers[e.layer]?.visible) continue;
+          ovDot(g, e.a, scale, 'ov-measure-dot');
+          ovDot(g, e.b, scale, 'ov-measure-dot');
+        }
+      }
+      if (this.snapHit) ovSnap(g, this.snapHit, scale);
+    }
+
     if (this.drag.t === 'marquee') {
       const d = this.drag;
       const b = bboxOf([d.start, d.cur]);
@@ -643,6 +711,42 @@ export class SelectTool implements Tool {
           }),
         );
       }
+    }
+
+    // angle vertex/leg + radius handles
+    if (singleEnt?.kind === 'angle') {
+      const hs = px(5);
+      for (const [which, p] of [
+        ['ang:vertex', singleEnt.vertex],
+        ['ang:a', singleEnt.a],
+        ['ang:b', singleEnt.b],
+      ] as const) {
+        g.appendChild(
+          el('rect', {
+            x: p.x - hs,
+            y: p.y - hs,
+            width: hs * 2,
+            height: hs * 2,
+            class: 'ov-handle',
+            'data-handle': which,
+            'vector-effect': 'non-scaling-stroke',
+          }),
+        );
+      }
+      const dirA = norm(sub(singleEnt.a, singleEnt.vertex));
+      const dirB = norm(sub(singleEnt.b, singleEnt.vertex));
+      const bis = norm(add(dirA, dirB));
+      const rp = add(singleEnt.vertex, mul(bis, singleEnt.radius));
+      g.appendChild(
+        el('circle', {
+          cx: rp.x,
+          cy: rp.y,
+          r: px(5),
+          class: 'ov-radius',
+          'data-handle': 'angoff',
+          'vector-effect': 'non-scaling-stroke',
+        }),
+      );
     }
 
     // selection bbox + rotate handle

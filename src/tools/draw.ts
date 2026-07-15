@@ -1,11 +1,12 @@
 import type { PathEnt, Vec, Vertex } from '../types';
 import { newId } from '../types';
 import { dist, formatLen, offsetPolyline, pathD, wallOffsets } from '../geom';
-import { snapDraw, pointAtDistance, type SnapHit } from '../snap';
+import { alignRefVertices, alignSnap, snapDraw, pointAtDistance, type AlignGuide, type SnapHit } from '../snap';
 import {
   chip,
   clearOverlay,
   LenBuffer,
+  ovAlignGuide,
   ovDot,
   ovPath,
   ovSnap,
@@ -32,6 +33,7 @@ export class DrawTool implements Tool {
   private pts: Vertex[] = [];
   private cursor: SnapHit | null = null;
   private buf = new LenBuffer();
+  private alignGuides: AlignGuide[] = [];
 
   constructor(
     private ctx: ToolCtx,
@@ -52,15 +54,27 @@ export class DrawTool implements Tool {
     this.pts = [];
     this.cursor = null;
     this.buf.clear();
+    this.alignGuides = [];
     clearOverlay(this.ctx);
   }
 
   private snapAt(ev: ToolEvent): SnapHit {
     const ctx = this.ctx;
+    this.alignGuides = [];
     if (this.pts.length === 0) return snapFree(ctx, ev.raw, ev.e);
-    return snapDraw(ctx.store.doc, this.pts[this.pts.length - 1], ev.raw, tol(ctx), ctx.settings.value, {
+    const hit = snapDraw(ctx.store.doc, this.pts[this.pts.length - 1], ev.raw, tol(ctx), ctx.settings.value, {
       off: ev.e.ctrlKey || ev.e.metaKey,
     });
+    const align = ctx.settings.value.alignSnap;
+    if (align !== 'off' && hit.kind !== 'vertex' && hit.kind !== 'edge') {
+      const refs = alignRefVertices(this.pts, this.pts.length, false, align);
+      const a = alignSnap(hit.p, refs, tol(ctx));
+      if (a.guides.length) {
+        this.alignGuides = a.guides;
+        return { ...hit, p: a.p };
+      }
+    }
+    return hit;
   }
 
   down(ev: ToolEvent): void {
@@ -189,6 +203,7 @@ export class DrawTool implements Tool {
     clearOverlay(ctx);
     const g = ctx.overlay;
     const scale = ctx.view.view.scale;
+    for (const guide of this.alignGuides) ovAlignGuide(ctx, guide);
     if (this.cursor) ovSnap(g, this.cursor, scale);
     if (this.pts.length === 0) return;
     const cur = this.cursor?.p ?? this.pts[this.pts.length - 1];

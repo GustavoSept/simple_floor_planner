@@ -1,11 +1,14 @@
-import type { AreaLabelEnt, DimEnt, PathEnt, Vec } from '../types';
+import type { AngleEnt, AreaLabelEnt, DimEnt, PathEnt, Vec } from '../types';
 import { newId } from '../types';
 import {
+  add,
+  angleBetweenDeg,
   dist,
   dot,
   flattenPath,
   formatArea,
   formatLen,
+  mul,
   norm,
   pathD,
   perp,
@@ -35,6 +38,7 @@ export class TapeTool implements Tool {
   private a: Vec | null = null;
   private cur: SnapHit | null = null;
   private done = false;
+  private sticky: string | undefined;
 
   constructor(private ctx: ToolCtx) {}
 
@@ -46,12 +50,18 @@ export class TapeTool implements Tool {
     this.a = null;
     this.cur = null;
     this.done = false;
+    this.sticky = undefined;
     clearOverlay(this.ctx);
+  }
+
+  private track(hit: SnapHit): SnapHit {
+    this.sticky = hit.guide ? hit.entId : undefined;
+    return hit;
   }
 
   down(ev: ToolEvent): void {
     if (ev.e.button !== 0) return;
-    const hit = snapFree(this.ctx, ev.raw, ev.e);
+    const hit = this.track(snapFree(this.ctx, ev.raw, ev.e, undefined, this.sticky));
     if (!this.a || this.done) {
       this.a = hit.p;
       this.done = false;
@@ -64,14 +74,18 @@ export class TapeTool implements Tool {
 
   move(ev: ToolEvent): void {
     if (this.done) return;
-    this.cur = this.a ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e) : snapFree(this.ctx, ev.raw, ev.e);
+    this.cur = this.track(
+      this.a
+        ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e, undefined, this.sticky)
+        : snapFree(this.ctx, ev.raw, ev.e, undefined, this.sticky),
+    );
     this.draw();
   }
 
   up(ev: ToolEvent): void {
     if (this.a && !this.done && this.cur && dist(this.a, this.cur.p) > 2) {
       // drag gesture: finish on release
-      this.cur = snapMoveFree(this.ctx, this.a, ev.raw, ev.e);
+      this.cur = this.track(snapMoveFree(this.ctx, this.a, ev.raw, ev.e, undefined, this.sticky));
       this.done = true;
       this.draw();
     }
@@ -112,6 +126,7 @@ export class DimTool implements Tool {
   private b: Vec | null = null;
   private cur: SnapHit | null = null;
   private offset = 30;
+  private sticky: string | undefined;
 
   constructor(private ctx: ToolCtx) {}
 
@@ -123,12 +138,20 @@ export class DimTool implements Tool {
     this.a = null;
     this.b = null;
     this.cur = null;
+    this.sticky = undefined;
     clearOverlay(this.ctx);
+  }
+
+  private track(hit: SnapHit): SnapHit {
+    this.sticky = hit.guide ? hit.entId : undefined;
+    return hit;
   }
 
   down(ev: ToolEvent): void {
     if (ev.e.button !== 0) return;
-    const hit = this.a ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e) : snapFree(this.ctx, ev.raw, ev.e);
+    const hit = this.a
+      ? this.track(snapMoveFree(this.ctx, this.a, ev.raw, ev.e, undefined, this.sticky))
+      : this.track(snapFree(this.ctx, ev.raw, ev.e, undefined, this.sticky));
     if (!this.a) {
       this.a = hit.p;
     } else if (!this.b) {
@@ -152,7 +175,9 @@ export class DimTool implements Tool {
 
   move(ev: ToolEvent): void {
     this.cur =
-      this.a && !this.b ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e) : snapFree(this.ctx, ev.raw, ev.e);
+      this.a && !this.b
+        ? this.track(snapMoveFree(this.ctx, this.a, ev.raw, ev.e, undefined, this.sticky))
+        : snapFree(this.ctx, ev.raw, ev.e);
     if (this.a && this.b) {
       const dir = norm(sub(this.b, this.a));
       this.offset = Math.round(dot(sub(ev.raw, this.a), perp(dir)));
@@ -191,6 +216,105 @@ export class DimTool implements Tool {
     }
     const mid = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
     chip(ctx, mid, formatLen(dist(this.a, end), ctx.settings.value.unit, ctx.defaults.dimPrecision));
+  }
+}
+
+/** Permanent angle measurement: vertex, then two points defining its legs. */
+export class AngleTool implements Tool {
+  readonly id = 'angle' as const;
+  readonly hint = "Click the vertex, then two points to define the angle's legs · Esc restarts";
+  private vertex: Vec | null = null;
+  private a: Vec | null = null;
+  private cur: SnapHit | null = null;
+  private sticky: string | undefined;
+
+  constructor(private ctx: ToolCtx) {}
+
+  deactivate(): void {
+    this.reset();
+  }
+
+  private reset(): void {
+    this.vertex = null;
+    this.a = null;
+    this.cur = null;
+    this.sticky = undefined;
+    clearOverlay(this.ctx);
+  }
+
+  private track(hit: SnapHit): SnapHit {
+    this.sticky = hit.guide ? hit.entId : undefined;
+    return hit;
+  }
+
+  down(ev: ToolEvent): void {
+    if (ev.e.button !== 0) return;
+    const hit = this.vertex
+      ? this.track(snapMoveFree(this.ctx, this.vertex, ev.raw, ev.e, undefined, this.sticky))
+      : this.track(snapFree(this.ctx, ev.raw, ev.e, undefined, this.sticky));
+    if (!this.vertex) {
+      this.vertex = hit.p;
+    } else if (!this.a) {
+      if (dist(hit.p, this.vertex) < 1) return;
+      this.a = hit.p;
+    } else {
+      if (dist(hit.p, this.vertex) < 1) return;
+      const b = hit.p;
+      const legLen = (dist(this.vertex, this.a) + dist(this.vertex, b)) / 2;
+      const radius = Math.max(20, Math.min(120, legLen * 0.4));
+      const ent: AngleEnt = {
+        id: newId(),
+        kind: 'angle',
+        layer: 'dimensions',
+        vertex: this.vertex,
+        a: this.a,
+        b,
+        radius,
+        precision: this.ctx.defaults.anglePrecision,
+      };
+      this.ctx.store.addEntity(ent);
+      this.reset();
+    }
+    this.draw();
+  }
+
+  move(ev: ToolEvent): void {
+    this.cur = this.vertex
+      ? this.track(snapMoveFree(this.ctx, this.vertex, ev.raw, ev.e, undefined, this.sticky))
+      : this.track(snapFree(this.ctx, ev.raw, ev.e, undefined, this.sticky));
+    this.draw();
+  }
+
+  key(e: KeyboardEvent): boolean {
+    if (e.key === 'Escape' && (this.vertex || this.a)) {
+      this.reset();
+      return true;
+    }
+    return false;
+  }
+
+  renderOverlay(): void {
+    this.draw();
+  }
+
+  private draw(): void {
+    const ctx = this.ctx;
+    clearOverlay(ctx);
+    if (this.cur) ovSnap(ctx.overlay, this.cur, ctx.view.view.scale);
+    if (!this.vertex) return;
+    const p2 = this.a ?? this.cur?.p;
+    if (!p2) return;
+    ovLine(ctx.overlay, this.vertex, p2, 'ov-tape');
+    if (this.a) {
+      const p3 = this.cur?.p ?? this.a;
+      ovLine(ctx.overlay, this.vertex, p3, 'ov-tape');
+      const d1 = sub(this.a, this.vertex);
+      const d2 = sub(p3, this.vertex);
+      if (dist(this.vertex, p3) > 1) {
+        const deg = angleBetweenDeg(d1, d2);
+        chip(ctx, add(this.vertex, mul(norm(add(norm(d1), norm(d2))), 30)), `${deg.toFixed(this.ctx.defaults.anglePrecision)}°`);
+      }
+    }
   }
 }
 

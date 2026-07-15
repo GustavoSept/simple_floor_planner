@@ -1,4 +1,5 @@
 import type {
+  AngleEnt,
   AreaLabelEnt,
   CustomItemDef,
   DimEnt,
@@ -6,6 +7,7 @@ import type {
   ItemEnt,
   OpeningEnt,
   PathEnt,
+  Settings,
   TextEnt,
   Vec,
 } from './types';
@@ -70,6 +72,7 @@ const TOOL_BUTTONS: { id: ToolId; label: string; key: string; icon: string }[] =
   { id: 'window', label: 'Window', key: 'N', icon: 'M2 6 H14 V10 H2 Z M2 8 H14' },
   { id: 'dim', label: 'Dimension', key: 'I', icon: 'M3 4 V12 M13 4 V12 M3 8 H13 M5 6.5 L3 8 L5 9.5 M11 6.5 L13 8 L11 9.5' },
   { id: 'tape', label: 'Tape measure', key: 'M', icon: 'M2 6 H14 V11 H2 Z M5 6 V8.5 M8 6 V8.5 M11 6 V8.5' },
+  { id: 'angle', label: 'Angle', key: 'K', icon: 'M3 13 V4 M3 13 H12.5 M3 9.5 A 3.5 3.5 0 0 0 6.5 13' },
   { id: 'arealabel', label: 'Area label', key: 'A', icon: 'M3 3 H13 V13 H3 Z M5.5 10.5 L8 5.5 L10.5 10.5 M6.5 9 H9.5' },
   { id: 'text', label: 'Text', key: 'T', icon: 'M4 3.5 H12 M8 3.5 V13' },
 ];
@@ -367,6 +370,12 @@ export function buildUI(app: AppApi): UIHandles {
           row('Decimal places', precisionInput(ent.precision ?? 2, (n) => store.updateEntity<DimEnt>(ent.id, { precision: n }))),
         );
         break;
+      case 'angle':
+        propsEl.appendChild(h('div', { class: 'prop-info' }, 'Angle — drag the arc to resize it; drag the vertex or leg points to re-measure.'));
+        propsEl.appendChild(
+          row('Decimal places', precisionInput(ent.precision ?? 1, (n) => store.updateEntity<AngleEnt>(ent.id, { precision: n }))),
+        );
+        break;
     }
   }
 
@@ -428,6 +437,13 @@ export function buildUI(app: AppApi): UIHandles {
       propsEl.appendChild(h('div', { class: 'prop-info' }, 'Tape measure'));
       propsEl.appendChild(
         row('Decimal places', precisionInput(d.tapePrecision, (n) => (d.tapePrecision = n))),
+      );
+      return;
+    }
+    if (toolId === 'angle') {
+      propsEl.appendChild(h('div', { class: 'prop-info' }, 'Angle measurement'));
+      propsEl.appendChild(
+        row('Decimal places', precisionInput(d.anglePrecision, (n) => (d.anglePrecision = n))),
       );
       return;
     }
@@ -606,10 +622,29 @@ export function buildUI(app: AppApi): UIHandles {
       b.onclick = fn;
       togglesEl.appendChild(b);
     };
+    const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    const mkCycle = <K extends 'alignSnap' | 'measureSnap'>(
+      prefix: string,
+      key: K,
+      modes: readonly Settings[K][],
+      title: string,
+    ) => {
+      const cur = s[key];
+      const idx = modes.indexOf(cur);
+      const b = h(
+        'button',
+        { class: 'chip-toggle' + (cur !== modes[0] ? ' on' : ''), title },
+        `${prefix}: ${cap(String(cur))}`,
+      );
+      b.onclick = () => settings.update({ [key]: modes[(idx + 1) % modes.length] } as Partial<Settings>);
+      togglesEl.appendChild(b);
+    };
     mk('Grid', s.showGrid, () => settings.update({ showGrid: !s.showGrid }), 'Show grid (G)');
     mk('Grid snap', s.snapGrid, () => settings.update({ snapGrid: !s.snapGrid }), 'Snap to grid');
     mk('Object snap', s.snapObjects, () => settings.update({ snapObjects: !s.snapObjects }), 'Snap to vertices & edges (hold Ctrl to disable temporarily)');
     mk('Angle', s.snapAngle, () => settings.update({ snapAngle: !s.snapAngle }), 'Constrain drawing to 15° steps');
+    mkCycle('Align', 'alignSnap', ['off', 'immediate', 'close', 'all'] as const, "Same-object X/Y alignment guides — click to cycle off/immediate/close/all");
+    mkCycle('Measure', 'measureSnap', ['off', 'vertex', 'all'] as const, 'Snap to dimension lines — click to cycle off/vertex/all');
     const unitBtn = h('button', { class: 'chip-toggle on', title: 'Display unit' }, s.unit === 'm' ? 'meters' : 'centimeters');
     unitBtn.onclick = () => settings.update({ unit: s.unit === 'm' ? 'cm' : 'm' });
     togglesEl.appendChild(unitBtn);
@@ -657,6 +692,18 @@ export function buildUI(app: AppApi): UIHandles {
     chk('Snap to grid', 'snapGrid');
     chk('Snap to objects', 'snapObjects');
     chk('Angle snap (15°)', 'snapAngle');
+    const alignSel = h('select', {});
+    alignSel.append(new Option('Off', 'off'), new Option('Immediate neighbors', 'immediate'), new Option('Close (≤4 hops)', 'close'), new Option('All vertices', 'all'));
+    alignSel.value = s.alignSnap;
+    alignSel.onchange = () => settings.update({ alignSnap: alignSel.value as Settings['alignSnap'] });
+    body.appendChild(row('Align snap', alignSel));
+    body.appendChild(h('div', { class: 'prop-hint' }, 'While drawing or dragging a vertex, snaps to the X/Y of other vertices in the same object.'));
+    const measureSel = h('select', {});
+    measureSel.append(new Option('Off', 'off'), new Option('Endpoints only', 'vertex'), new Option('Anywhere on the line', 'all'));
+    measureSel.value = s.measureSnap;
+    measureSel.onchange = () => settings.update({ measureSnap: measureSel.value as Settings['measureSnap'] });
+    body.appendChild(row('Measure snap', measureSel));
+    body.appendChild(h('div', { class: 'prop-hint' }, 'Snaps to existing dimension lines, highlighted in red while active.'));
   }
 
   function renderPlansDialog(): void {

@@ -569,6 +569,21 @@ select,
   stroke-width: 1.5px;
 }
 
+.ov-measure-guide {
+  stroke: #e0393e;
+  stroke-width: 1px;
+}
+
+.ov-measure-dot {
+  fill: #e0393e;
+}
+
+.ov-align-guide {
+  stroke: #a855f7;
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+}
+
 .ov-room {
   fill: var(--accent-soft);
   stroke: var(--accent);

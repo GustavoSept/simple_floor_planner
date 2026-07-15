@@ -12,7 +12,7 @@ import type { Tool, ToolCtx, ToolDefaults, ToolId } from './tools/base';
 import { SelectTool } from './tools/select';
 import { DrawTool } from './tools/draw';
 import { OpeningTool } from './tools/openings';
-import { DimTool, TapeTool, AreaLabelTool } from './tools/measure';
+import { AngleTool, DimTool, TapeTool, AreaLabelTool } from './tools/measure';
 import { PlaceTool, TextTool } from './tools/place';
 import { buildUI, type UIHandles } from './ui';
 
@@ -38,6 +38,7 @@ const defaults: ToolDefaults = {
   textSize: 22,
   dimPrecision: 2,
   tapePrecision: 2,
+  anglePrecision: 1,
 };
 
 let ui: UIHandles | null = null;
@@ -69,6 +70,7 @@ const tools: Record<ToolId, Tool> = {
   window: new OpeningTool(ctx, 'window'),
   dim: new DimTool(ctx),
   tape: new TapeTool(ctx),
+  angle: new AngleTool(ctx),
   arealabel: new AreaLabelTool(ctx),
   text: new TextTool(ctx),
   place: new PlaceTool(ctx),
@@ -130,6 +132,7 @@ const TOOL_KEYS: Record<string, ToolId> = {
   n: 'window',
   i: 'dim',
   m: 'tape',
+  k: 'angle',
   a: 'arealabel',
   t: 'text',
 };
@@ -242,6 +245,14 @@ function duplicateSelection(): void {
       clones.push({
         ...e,
         id: nid,
+        a: { x: e.a.x + off, y: e.a.y + off },
+        b: { x: e.b.x + off, y: e.b.y + off },
+      });
+    } else if (e.kind === 'angle') {
+      clones.push({
+        ...e,
+        id: nid,
+        vertex: { x: e.vertex.x + off, y: e.vertex.y + off },
         a: { x: e.a.x + off, y: e.a.y + off },
         b: { x: e.b.x + off, y: e.b.y + off },
       });

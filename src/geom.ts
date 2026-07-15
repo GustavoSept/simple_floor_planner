@@ -21,6 +21,12 @@ export function norm(a: Vec): Vec {
 /** Perpendicular (rotate +90° in SVG's y-down coords). */
 export const perp = (a: Vec): Vec => ({ x: -a.y, y: a.x });
 
+/** Included angle between two vectors, degrees in [0, 180]. */
+export function angleBetweenDeg(a: Vec, b: Vec): number {
+  const cos = Math.max(-1, Math.min(1, dot(norm(a), norm(b))));
+  return (Math.acos(cos) * 180) / Math.PI;
+}
+
 export function rotate(a: Vec, deg: number): Vec {
   const r = (deg * Math.PI) / 180;
   const c = Math.cos(r);

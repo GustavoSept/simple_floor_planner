@@ -4,7 +4,7 @@ import type { SettingsStore } from '../settings';
 import type { ViewCtl } from '../view';
 import { parseLen } from '../geom';
 import { el } from '../render';
-import { snapMove, snapPoint, type SnapHit } from '../snap';
+import { snapMove, snapPoint, type AlignGuide, type SnapHit } from '../snap';
 
 export type ToolId =
   | 'select'
@@ -16,6 +16,7 @@ export type ToolId =
   | 'window'
   | 'dim'
   | 'tape'
+  | 'angle'
   | 'arealabel'
   | 'text'
   | 'place';
@@ -30,6 +31,7 @@ export interface ToolDefaults {
   textSize: number;
   dimPrecision: number; // decimal digits for new dimension lines
   tapePrecision: number; // decimal digits for the tape measure readout
+  anglePrecision: number; // decimal digits for new angle measurements
 }
 
 export interface ToolCtx {
@@ -75,10 +77,17 @@ export function tol(ctx: ToolCtx): number {
   return 10 / ctx.view.view.scale;
 }
 
-export function snapFree(ctx: ToolCtx, raw: Vec, e?: PointerEvent, exclude?: ReadonlySet<string>): SnapHit {
+export function snapFree(
+  ctx: ToolCtx,
+  raw: Vec,
+  e?: PointerEvent,
+  exclude?: ReadonlySet<string>,
+  sticky?: string,
+): SnapHit {
   return snapPoint(ctx.store.doc, raw, tol(ctx), ctx.settings.value, {
     off: e?.ctrlKey || e?.metaKey,
     exclude,
+    sticky,
   });
 }
 
@@ -89,10 +98,12 @@ export function snapMoveFree(
   raw: Vec,
   e?: PointerEvent,
   exclude?: ReadonlySet<string>,
+  sticky?: string,
 ): SnapHit {
   return snapMove(ctx.store.doc, anchor, raw, tol(ctx), ctx.settings.value, !!e?.shiftKey, {
     off: e?.ctrlKey || e?.metaKey,
     exclude,
+    sticky,
   });
 }
 
@@ -141,6 +152,9 @@ export function ovDot(g: SVGGElement, p: Vec, scale: number, cls = 'ov-dot'): vo
 
 /** Snap indicator: small diamond at vertex snaps, circle at edge snaps. */
 export function ovSnap(g: SVGGElement, hit: SnapHit, scale: number): void {
+  if (hit.guide) {
+    ovLine(g, hit.guide[0], hit.guide[1], 'ov-measure-guide');
+  }
   if (hit.kind !== 'vertex' && hit.kind !== 'edge') return;
   const s = 6 / scale;
   if (hit.kind === 'vertex') {
@@ -154,6 +168,16 @@ export function ovSnap(g: SVGGElement, hit: SnapHit, scale: number): void {
     );
   } else {
     g.appendChild(el('circle', { cx: hit.p.x, cy: hit.p.y, r: s, class: 'ov-snap', fill: 'none' }));
+  }
+}
+
+/** Draw a full-viewport alignment guide line for one locked axis. */
+export function ovAlignGuide(ctx: ToolCtx, guide: AlignGuide): void {
+  const r = ctx.view.worldRect();
+  if (guide.axis === 'x') {
+    ovLine(ctx.overlay, { x: guide.value, y: r.minY }, { x: guide.value, y: r.maxY }, 'ov-align-guide');
+  } else {
+    ovLine(ctx.overlay, { x: r.minX, y: guide.value }, { x: r.maxX, y: guide.value }, 'ov-align-guide');
   }
 }
 

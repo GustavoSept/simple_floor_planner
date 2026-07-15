@@ -1,4 +1,5 @@
 import type {
+  AngleEnt,
   AreaLabelEnt,
   DimEnt,
   Doc,
@@ -11,6 +12,7 @@ import type {
 import { LAYER_ORDER } from './types';
 import {
   add,
+  angleBetweenDeg,
   dist,
   flattenPath,
   formatArea,
@@ -153,6 +155,9 @@ export function buildScene(doc: Doc, o: RenderOpts): SVGGElement {
           break;
         case 'dim':
           node = buildDim(e, o);
+          break;
+        case 'angle':
+          node = buildAngle(e, o);
           break;
         case 'text':
           node = buildText(e, o);
@@ -396,6 +401,72 @@ function buildDim(e: DimEnt, o: RenderOpts): SVGGElement {
         'pointer-events': 'stroke',
       }),
     );
+  }
+  return g;
+}
+
+function buildAngle(e: AngleEnt, o: RenderOpts): SVGGElement {
+  const color = layerColor(o.palette, e.layer);
+  const g = el('g', { stroke: color, fill: 'none', 'stroke-width': 1.1 });
+  const dirA = norm(sub(e.a, e.vertex));
+  const dirB = norm(sub(e.b, e.vertex));
+  // degenerate: a or b coincides with the vertex — nothing sensible to draw
+  if (dist(e.vertex, e.a) < 1e-6 || dist(e.vertex, e.b) < 1e-6) return g;
+  const legLen = Math.max(e.radius + 20, dist(e.vertex, e.a), dist(e.vertex, e.b));
+  for (const dir of [dirA, dirB]) {
+    const p = add(e.vertex, mul(dir, legLen));
+    g.appendChild(
+      el('line', { x1: e.vertex.x, y1: e.vertex.y, x2: p.x, y2: p.y, 'stroke-width': 0.8 }),
+    );
+  }
+  const angA = Math.atan2(dirA.y, dirA.x);
+  const angB = Math.atan2(dirB.y, dirB.x);
+  let sweep = angB - angA;
+  while (sweep > Math.PI) sweep -= 2 * Math.PI;
+  while (sweep <= -Math.PI) sweep += 2 * Math.PI;
+  const sweepFlag = sweep > 0 ? 1 : 0;
+  const p1 = add(e.vertex, mul(dirA, e.radius));
+  const p2 = add(e.vertex, mul(dirB, e.radius));
+  g.appendChild(
+    el('path', { d: `M ${p1.x} ${p1.y} A ${e.radius} ${e.radius} 0 0 ${sweepFlag} ${p2.x} ${p2.y}` }),
+  );
+  const deg = angleBetweenDeg(dirA, dirB);
+  const midAng = angA + sweep / 2;
+  const labelR = e.radius + 14;
+  const lp = {
+    x: e.vertex.x + Math.cos(midAng) * labelR,
+    y: e.vertex.y + Math.sin(midAng) * labelR,
+  };
+  g.appendChild(
+    el(
+      'text',
+      {
+        x: lp.x,
+        y: lp.y,
+        'text-anchor': 'middle',
+        'dominant-baseline': 'middle',
+        'font-size': DIM_TEXT,
+        fill: color,
+        stroke: 'none',
+      },
+      `${deg.toFixed(e.precision ?? 1)}°`,
+    ),
+  );
+  if (o.interactive) {
+    for (const p of [e.a, e.b]) {
+      g.appendChild(
+        el('line', {
+          x1: e.vertex.x,
+          y1: e.vertex.y,
+          x2: p.x,
+          y2: p.y,
+          stroke: 'rgba(0,0,0,0)',
+          'stroke-width': 14,
+          class: 'hit',
+          'pointer-events': 'stroke',
+        }),
+      );
+    }
   }
   return g;
 }

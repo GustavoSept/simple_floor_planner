@@ -96,6 +96,15 @@ export interface DimEnt extends EntityBase {
   precision?: number; // decimal digits shown in the label; defaults to 2
 }
 
+export interface AngleEnt extends EntityBase {
+  kind: 'angle';
+  vertex: Vec; // the angle's corner point
+  a: Vec; // point defining the first leg
+  b: Vec; // point defining the second leg
+  radius: number; // cm, distance from vertex to the arc/label (drag-adjustable)
+  precision?: number; // decimal digits shown in the label; defaults to 1
+}
+
 export interface TextEnt extends EntityBase {
   kind: 'text';
   x: number;
@@ -112,7 +121,7 @@ export interface AreaLabelEnt extends EntityBase {
   y: number;
 }
 
-export type Entity = PathEnt | ItemEnt | OpeningEnt | DimEnt | TextEnt | AreaLabelEnt;
+export type Entity = PathEnt | ItemEnt | OpeningEnt | DimEnt | AngleEnt | TextEnt | AreaLabelEnt;
 
 /** Reusable user-defined object ("save selection as object"). */
 export interface CustomItemDef {
@@ -151,6 +160,10 @@ export interface Settings {
   snapGrid: boolean;
   snapObjects: boolean;
   snapAngle: boolean;
+  /** same-object X/Y alignment guides; how many topological hops from the moved vertex still count */
+  alignSnap: 'off' | 'immediate' | 'close' | 'all';
+  /** snap to dimension lines: their endpoints only, or anywhere along the line */
+  measureSnap: 'off' | 'vertex' | 'all';
   theme: 'light' | 'dark';
 }
 
@@ -161,5 +174,7 @@ export const DEFAULT_SETTINGS: Settings = {
   snapGrid: true,
   snapObjects: true,
   snapAngle: true,
+  alignSnap: 'off',
+  measureSnap: 'off',
   theme: 'light',
 };

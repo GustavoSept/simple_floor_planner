@@ -145,6 +145,16 @@ export function entityBBox(doc: Doc, e: Entity): BBox | null {
       const off = mul(perp(d), e.offset);
       return bboxOf([e.a, e.b, add(e.a, off), add(e.b, off)]);
     }
+    case 'angle': {
+      const r = e.radius;
+      return bboxOf([
+        e.vertex,
+        e.a,
+        e.b,
+        { x: e.vertex.x - r, y: e.vertex.y - r },
+        { x: e.vertex.x + r, y: e.vertex.y + r },
+      ]);
+    }
     case 'text': {
       const w = Math.max(20, e.text.length * e.size * 0.6);
       return { minX: e.x, minY: e.y - e.size, maxX: e.x + w, maxY: e.y + e.size * 0.3 };
@@ -175,6 +185,8 @@ export function moveEntity(e: Entity, d: Vec): Entity {
       return { ...e, x: e.x + d.x, y: e.y + d.y };
     case 'dim':
       return { ...e, a: add(e.a, d), b: add(e.b, d) };
+    case 'angle':
+      return { ...e, vertex: add(e.vertex, d), a: add(e.a, d), b: add(e.b, d) };
     case 'opening':
       return e;
   }
@@ -197,6 +209,8 @@ export function rotateEntity(e: Entity, center: Vec, deg: number): Entity {
     }
     case 'dim':
       return { ...e, a: rot(e.a), b: rot(e.b) };
+    case 'angle':
+      return { ...e, vertex: rot(e.vertex), a: rot(e.a), b: rot(e.b) };
     case 'opening':
       return e;
   }
