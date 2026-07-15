@@ -4,7 +4,7 @@ import type { SettingsStore } from '../settings';
 import type { ViewCtl } from '../view';
 import { parseLen } from '../geom';
 import { el } from '../render';
-import { snapPoint, type SnapHit } from '../snap';
+import { snapMove, snapPoint, type SnapHit } from '../snap';
 
 export type ToolId =
   | 'select'
@@ -77,6 +77,20 @@ export function tol(ctx: ToolCtx): number {
 
 export function snapFree(ctx: ToolCtx, raw: Vec, e?: PointerEvent, exclude?: ReadonlySet<string>): SnapHit {
   return snapPoint(ctx.store.doc, raw, tol(ctx), ctx.settings.value, {
+    off: e?.ctrlKey || e?.metaKey,
+    exclude,
+  });
+}
+
+/** Like `snapFree`, but Shift locks the point to the horizontal/vertical axis through `anchor`. */
+export function snapMoveFree(
+  ctx: ToolCtx,
+  anchor: Vec,
+  raw: Vec,
+  e?: PointerEvent,
+  exclude?: ReadonlySet<string>,
+): SnapHit {
+  return snapMove(ctx.store.doc, anchor, raw, tol(ctx), ctx.settings.value, !!e?.shiftKey, {
     off: e?.ctrlKey || e?.metaKey,
     exclude,
   });

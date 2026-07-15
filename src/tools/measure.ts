@@ -21,6 +21,7 @@ import {
   ovLine,
   ovSnap,
   snapFree,
+  snapMoveFree,
   type Tool,
   type ToolCtx,
   type ToolEvent,
@@ -63,14 +64,14 @@ export class TapeTool implements Tool {
 
   move(ev: ToolEvent): void {
     if (this.done) return;
-    this.cur = snapFree(this.ctx, ev.raw, ev.e);
+    this.cur = this.a ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e) : snapFree(this.ctx, ev.raw, ev.e);
     this.draw();
   }
 
   up(ev: ToolEvent): void {
     if (this.a && !this.done && this.cur && dist(this.a, this.cur.p) > 2) {
       // drag gesture: finish on release
-      this.cur = snapFree(this.ctx, ev.raw, ev.e);
+      this.cur = snapMoveFree(this.ctx, this.a, ev.raw, ev.e);
       this.done = true;
       this.draw();
     }
@@ -127,7 +128,7 @@ export class DimTool implements Tool {
 
   down(ev: ToolEvent): void {
     if (ev.e.button !== 0) return;
-    const hit = snapFree(this.ctx, ev.raw, ev.e);
+    const hit = this.a ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e) : snapFree(this.ctx, ev.raw, ev.e);
     if (!this.a) {
       this.a = hit.p;
     } else if (!this.b) {
@@ -150,7 +151,8 @@ export class DimTool implements Tool {
   }
 
   move(ev: ToolEvent): void {
-    this.cur = snapFree(this.ctx, ev.raw, ev.e);
+    this.cur =
+      this.a && !this.b ? snapMoveFree(this.ctx, this.a, ev.raw, ev.e) : snapFree(this.ctx, ev.raw, ev.e);
     if (this.a && this.b) {
       const dir = norm(sub(this.b, this.a));
       this.offset = Math.round(dot(sub(ev.raw, this.a), perp(dir)));

@@ -23,7 +23,7 @@ import {
   clearHud,
   editable,
   ovSnap,
-  snapFree,
+  snapMoveFree,
   tol,
   type Tool,
   type ToolCtx,
@@ -207,7 +207,8 @@ export class SelectTool implements Tool {
         return;
       }
       case 'move': {
-        const hit = snapFree(ctx, add(d.anchor0, sub(ev.raw, d.start)), ev.e, ctx.sel.ids);
+        const raw = add(d.anchor0, sub(ev.raw, d.start));
+        const hit = snapMoveFree(ctx, d.anchor0, raw, ev.e, ctx.sel.ids);
         const delta = sub(hit.p, d.anchor0);
         if (!d.moved && dist(ev.raw, d.start) < tol(ctx) / 2) return;
         d.moved = true;
@@ -221,7 +222,8 @@ export class SelectTool implements Tool {
       case 'vertex': {
         const ent = this.ent<PathEnt>(base, d.entId);
         if (!ent) return;
-        const hit = snapFree(ctx, ev.raw, ev.e, new Set([d.entId]));
+        const anchor = ent.vertices[d.idx];
+        const hit = snapMoveFree(ctx, anchor, ev.raw, ev.e, new Set([d.entId]));
         d.moved = true;
         const vertices = ent.vertices.map((v0, i) =>
           i === d.idx ? { ...v0, x: hit.p.x, y: hit.p.y } : v0,
@@ -302,7 +304,9 @@ export class SelectTool implements Tool {
         return;
       }
       case 'dimend': {
-        const hit = snapFree(ctx, ev.raw, ev.e);
+        const ent = this.ent<DimEnt>(base, d.entId);
+        if (!ent) return;
+        const hit = snapMoveFree(ctx, ent[d.which], ev.raw, ev.e);
         d.moved = true;
         this.previewPatch(base, d.entId, { [d.which]: hit.p } as Partial<DimEnt>);
         this.ctx.overlay.querySelectorAll('.ov-snap').forEach((n) => n.remove());

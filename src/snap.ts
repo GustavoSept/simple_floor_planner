@@ -98,6 +98,43 @@ export function snapDraw(
   return snapPoint(doc, w, tol, s, opts);
 }
 
+/**
+ * Snap while repositioning an existing point (dragging a wall vertex, a
+ * dimension endpoint, a whole selection, ...). When `axis` is set (Shift
+ * held), the point is locked to the horizontal or vertical line through
+ * `anchor` — whichever axis the drag is predominantly moving along — with
+ * grid snapping still applied along the free axis. Object/grid snapping is
+ * unconstrained otherwise.
+ */
+export function snapMove(
+  doc: Doc,
+  anchor: Vec,
+  w: Vec,
+  tol: number,
+  s: Settings,
+  axis: boolean,
+  opts: SnapOpts = {},
+): SnapHit {
+  if (opts.off) return { p: axis ? axisLock(anchor, w) : w, kind: 'free' };
+  if (axis) {
+    const horiz = Math.abs(w.x - anchor.x) >= Math.abs(w.y - anchor.y);
+    let x = horiz ? w.x : anchor.x;
+    let y = horiz ? anchor.y : w.y;
+    if (s.snapGrid && s.gridSize > 0) {
+      const g = s.gridSize;
+      if (horiz) x = Math.round(x / g) * g;
+      else y = Math.round(y / g) * g;
+    }
+    return { p: { x, y }, kind: 'grid' };
+  }
+  return snapPoint(doc, w, tol, s, opts);
+}
+
+function axisLock(anchor: Vec, p: Vec): Vec {
+  const horiz = Math.abs(p.x - anchor.x) >= Math.abs(p.y - anchor.y);
+  return horiz ? { x: p.x, y: anchor.y } : { x: anchor.x, y: p.y };
+}
+
 /** Place a point at an exact typed distance from anchor, toward `toward`. */
 export function pointAtDistance(anchor: Vec, toward: Vec, lenCm: number, angleSnap: boolean): Vec {
   let dir = norm(sub(toward, anchor));
