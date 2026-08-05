@@ -1,0 +1,790 @@
+{
+  "app": "simple-floor-planner",
+  "version": 1,
+  "name": "Casa Osasco",
+  "entities": [
+    {
+      "id": "mri87ewh02",
+      "kind": "path",
+      "layer": "structure",
+      "vertices": [
+        {
+          "x": 90,
+          "y": -49.90104615369927
+        },
+        {
+          "x": 446.503421287608,
+          "y": -49.90104615369927
+        },
+        {
+          "x": 446.503421287608,
+          "y": 169.56430212924977
+        },
+        {
+          "x": 326.4613992814145,
+          "y": 169.56430212924977
+        },
+        {
+          "x": 326.4613992814145,
+          "y": 411.427493232313
+        },
+        {
+          "x": 106.68515574401853,
+          "y": 411.427493232313
+        },
+        {
+          "x": 106.68515574401853,
+          "y": 81.53498162518717
+        },
+        {
+          "x": 43.41066221303524,
+          "y": 27.58214364237255
+        },
+        {
+          "x": -15.10759339645193,
+          "y": 27.58214364237255
+        },
+        {
+          "x": -15.10759339645193,
+          "y": -134.08487940453506
+        },
+        {
+          "x": 90,
+          "y": -134.08487940453506
+        }
+      ],
+      "closed": true,
+      "wall": {
+        "thickness": 15,
+        "align": "edge",
+        "side": -1
+      }
+    },
+    {
+      "id": "mri89ifk03",
+      "kind": "path",
+      "layer": "structure",
+      "vertices": [
+        {
+          "x": 106.68515574401853,
+          "y": 426.4708811467699
+        },
+        {
+          "x": -161.96869083876643,
+          "y": 426.4708811467699
+        },
+        {
+          "x": -161.96869083876643,
+          "y": 32.45021794856916
+        },
+        {
+          "x": 46.96304367420493,
+          "y": 32.45021794856916
+        },
+        {
+          "x": 106.68515574401853,
+          "y": 81.53498162518717
+        }
+      ],
+      "closed": true,
+      "wall": {
+        "thickness": 15,
+        "align": "edge",
+        "side": 1
+      }
+    },
+    {
+      "id": "mri8e0hm05",
+      "kind": "path",
+      "layer": "structure",
+      "vertices": [
+        {
+          "x": 341.4613992814145,
+          "y": 184.56430212924977
+        },
+        {
+          "x": 449.5231384158703,
+          "y": 184.56430212924977
+        },
+        {
+          "x": 449.5231384158703,
+          "y": 331.6078632772793
+        },
+        {
+          "x": 439.1959821130376,
+          "y": 331.6078632772793
+        },
+        {
+          "x": 439.1959821130376,
+          "y": 411.24566691019197
+        },
+        {
+          "x": 341.4613992814145,
+          "y": 411.24566691019197
+        }
+      ],
+      "closed": true,
+      "wall": {
+        "thickness": 15,
+        "align": "edge",
+        "side": -1
+      }
+    },
+    {
+      "id": "mri8ho0106",
+      "kind": "path",
+      "layer": "structure",
+      "vertices": [
+        {
+          "x": 94.17943297155416,
+          "y": 428.15344558006404
+        },
+        {
+          "x": 336.34185547173195,
+          "y": 428.15344558006404
+        },
+        {
+          "x": 336.34185547173195,
+          "y": 498.15344558006404,
+          "r": 33.6
+        },
+        {
+          "x": 94.17943297155416,
+          "y": 498.15344558006404,
+          "r": 33.6
+        }
+      ],
+      "closed": true,
+      "wall": {
+        "thickness": 5,
+        "align": "edge",
+        "side": -1
+      }
+    },
+    {
+      "id": "mri8kvuq07",
+      "kind": "arealabel",
+      "layer": "annotations",
+      "pathId": "mri87ewh02",
+      "name": "Sala / Cozinha",
+      "x": 269.5420225123213,
+      "y": -107.64871895564342
+    },
+    {
+      "id": "mri8kz1e09",
+      "kind": "arealabel",
+      "layer": "annotations",
+      "pathId": "mri8e0hm05",
+      "name": "Banheiro",
+      "x": 521.6985393965623,
+      "y": 292.5460452044722
+    },
+    {
+      "id": "mri8l0vu0a",
+      "kind": "arealabel",
+      "layer": "annotations",
+      "pathId": "mri8ho0106",
+      "name": "Sacada",
+      "x": 216.73276398028597,
+      "y": 455.22898874383935
+    },
+    {
+      "id": "mri8n70a0b",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 106.68515574401853,
+        "y": 190.4279003407331
+      },
+      "b": {
+        "x": 106.68515574401853,
+        "y": 411.427493232313
+      },
+      "offset": -21,
+      "precision": 2
+    },
+    {
+      "id": "mri8t41e0c",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "door",
+      "wallId": "mri87ewh02",
+      "seg": 5,
+      "t": 271,
+      "width": 82,
+      "hinge": -1,
+      "swing": -1,
+      "padding": 6
+    },
+    {
+      "id": "mri8x7v60d",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "door",
+      "wallId": "mri87ewh02",
+      "seg": 9,
+      "t": 60,
+      "width": 82,
+      "hinge": 1,
+      "swing": 1,
+      "padding": 6
+    },
+    {
+      "id": "mri8ym8t0e",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "door",
+      "wallId": "mri87ewh02",
+      "seg": 3,
+      "t": 45,
+      "width": 62,
+      "hinge": 1,
+      "swing": -1,
+      "padding": 6
+    },
+    {
+      "id": "mri8ywor0f",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "window",
+      "wallId": "mri87ewh02",
+      "seg": 1,
+      "t": 83,
+      "width": 100,
+      "hinge": 1,
+      "swing": 1
+    },
+    {
+      "id": "mri90b5u0g",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 106.68515574401853,
+        "y": 411.427493232313
+      },
+      "b": {
+        "x": 326.4613992814145,
+        "y": 411.427493232313
+      },
+      "offset": 149
+    },
+    {
+      "id": "mri90gk20h",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 336.34185547173195,
+        "y": 498.15344558006404
+      },
+      "b": {
+        "x": 94.17943297155416,
+        "y": 498.15344558006404
+      },
+      "offset": -94
+    },
+    {
+      "id": "mri93j6a0i",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 90,
+        "y": -49.90104615369927
+      },
+      "b": {
+        "x": 446.503421287608,
+        "y": -49.90104615369927
+      },
+      "offset": 38
+    },
+    {
+      "id": "mri9491f0j",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "window",
+      "wallId": "mri89ifk03",
+      "seg": 0,
+      "t": 121,
+      "width": 150,
+      "hinge": 1,
+      "swing": -1
+    },
+    {
+      "id": "mri9cpul0l",
+      "kind": "arealabel",
+      "layer": "annotations",
+      "pathId": "mri89ifk03",
+      "name": "Quarto",
+      "x": -30,
+      "y": 450
+    },
+    {
+      "id": "mri9j75w0p",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "window",
+      "wallId": "mri8e0hm05",
+      "seg": 1,
+      "t": 109,
+      "width": 40,
+      "hinge": 1,
+      "swing": 1
+    },
+    {
+      "id": "mri9ksj90q",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 43.41053690541163,
+        "y": 88.7395552499336
+      },
+      "b": {
+        "x": 43.41053690541163,
+        "y": 102.6162386718841
+      },
+      "offset": 29
+    },
+    {
+      "id": "mri9n8th0r",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "toilet",
+      "x": 410.3096157116751,
+      "y": 286.01505771997006,
+      "w": 40,
+      "h": 68,
+      "rotation": 90,
+      "flip": false
+    },
+    {
+      "id": "mri9o2d90s",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "washbasin",
+      "x": 426.751898113695,
+      "y": 218.35080696204213,
+      "w": 55.00000000000001,
+      "h": 40,
+      "rotation": 90,
+      "flip": false
+    },
+    {
+      "id": "mri9pqqe0t",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "bed_double",
+      "x": -49.335391340953514,
+      "y": 339.3692279637481,
+      "w": 138,
+      "h": 188,
+      "rotation": 270,
+      "flip": false
+    },
+    {
+      "id": "mri9twfm0w",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "table",
+      "x": 289.39572785519414,
+      "y": 335.0575989018755,
+      "w": 150,
+      "h": 70,
+      "rotation": -90,
+      "flip": false
+    },
+    {
+      "id": "mri9v1780x",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 439.1959821130376,
+        "y": 411.24566691019197
+      },
+      "b": {
+        "x": 439.0199618795211,
+        "y": 184.56430212924977
+      },
+      "offset": -31
+    },
+    {
+      "id": "mri9vjra0y",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "computer",
+      "x": 291.08140580163473,
+      "y": 335.7746016188647,
+      "w": 110,
+      "h": 50,
+      "rotation": 90,
+      "flip": false
+    },
+    {
+      "id": "mria5vxa0z",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 460,
+        "y": 420
+      },
+      "b": {
+        "x": 460,
+        "y": 190
+      },
+      "offset": 113
+    },
+    {
+      "id": "mrmhlrf104",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 326.4613992814145,
+        "y": 411.427493232313
+      },
+      "b": {
+        "x": 326.4613992814145,
+        "y": 251.25245626193524
+      },
+      "offset": -56,
+      "precision": 2
+    },
+    {
+      "id": "mrmhp7za05",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 326.4613992814145,
+        "y": 189.75801637280793
+      },
+      "b": {
+        "x": 326.4613992814145,
+        "y": 169.56430212924977
+      },
+      "offset": -35,
+      "precision": 2
+    },
+    {
+      "id": "mrmhue5403",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 326.4613992814145,
+        "y": 169.56430212924977
+      },
+      "b": {
+        "x": 446.9296405941176,
+        "y": 169.56430212924977
+      },
+      "offset": -64,
+      "precision": 3
+    },
+    {
+      "id": "mrmhw07s04",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 446.503421287608,
+        "y": -50.2056970615722
+      },
+      "b": {
+        "x": 446.503421287608,
+        "y": 169.56430212924977
+      },
+      "offset": -85,
+      "precision": 2
+    },
+    {
+      "id": "mrmihfji05",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": -25,
+        "y": 411.48949947207456
+      },
+      "b": {
+        "x": -25,
+        "y": 46.69728842106364
+      },
+      "offset": -42,
+      "precision": 2
+    },
+    {
+      "id": "mrmiqpa606",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 91.68515574401853,
+        "y": 88.25487171895242
+      },
+      "b": {
+        "x": 42.3017096802832,
+        "y": 44.20022808962263
+      },
+      "offset": -28
+    },
+    {
+      "id": "mrmircw707",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": -146.5395452529805,
+        "y": 411.4708811467699
+      },
+      "b": {
+        "x": 91.68515574401853,
+        "y": 411.4708811467699
+      },
+      "offset": -44,
+      "precision": 2
+    },
+    {
+      "id": "mrmje5o301",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": -15.10759339645193,
+        "y": 27.437783128806934
+      },
+      "b": {
+        "x": -15.10759339645193,
+        "y": -134.08487940453506
+      },
+      "offset": -48
+    },
+    {
+      "id": "mrmjffz602",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": -15.10759339645193,
+        "y": 27.58214364237255
+      },
+      "b": {
+        "x": 43.41066221303524,
+        "y": 27.58214364237255
+      },
+      "offset": -28
+    },
+    {
+      "id": "mrmjfkei03",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 43.41066221303524,
+        "y": 27.58214364237255
+      },
+      "b": {
+        "x": 106.68515574401853,
+        "y": 81.53498162518717
+      },
+      "offset": -28
+    },
+    {
+      "id": "mrmjgrci04",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 106.68515574401853,
+        "y": 81.53498162518717
+      },
+      "b": {
+        "x": 106.68515574401853,
+        "y": 102.37848081665908
+      },
+      "offset": -17
+    },
+    {
+      "id": "mrmjhktm06",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 41.59445644159682,
+        "y": 47.45021794856916
+      },
+      "b": {
+        "x": -146.96869083876643,
+        "y": 47.45021794856916
+      },
+      "offset": -42,
+      "precision": 2
+    },
+    {
+      "id": "mrmjk3sw0a",
+      "kind": "opening",
+      "layer": "structure",
+      "opening": "window",
+      "wallId": "mri87ewh02",
+      "seg": 4,
+      "t": 116,
+      "width": 150,
+      "hinge": 1,
+      "swing": 1
+    },
+    {
+      "id": "mrmjl2e40b",
+      "kind": "dim",
+      "layer": "dimensions",
+      "a": {
+        "x": 326.4613992814145,
+        "y": 411.427493232313
+      },
+      "b": {
+        "x": 326.4613992814145,
+        "y": 169.56430212924977
+      },
+      "offset": -108,
+      "precision": 2
+    },
+    {
+      "id": "mrmjq5yo01",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "office_chair",
+      "x": 218.7664022603838,
+      "y": 338.0824595981035,
+      "w": 60,
+      "h": 60,
+      "rotation": -90,
+      "flip": false
+    },
+    {
+      "id": "mrmjr49302",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "shower",
+      "x": 424.4244472050605,
+      "y": 377.51694505496533,
+      "w": 20,
+      "h": 20,
+      "rotation": 0,
+      "flip": false
+    },
+    {
+      "id": "mrmjroco03",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "washbasin",
+      "x": 418.41193368340265,
+      "y": 146.1969352526685,
+      "w": 53,
+      "h": 45,
+      "rotation": 180,
+      "flip": false
+    },
+    {
+      "id": "mrmjt2vk04",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "corner_wardrobe",
+      "x": -93,
+      "y": 101,
+      "w": 105,
+      "h": 105,
+      "rotation": 0,
+      "flip": false,
+      "label": "Armário"
+    },
+    {
+      "id": "mrmjz1d501",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "washer",
+      "x": 357.26236936712286,
+      "y": 138.30421293449456,
+      "w": 60,
+      "h": 60,
+      "rotation": 0,
+      "flip": false
+    },
+    {
+      "id": "mrmlfz5601",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "table",
+      "x": 262.34875196594095,
+      "y": 135.36315143454465,
+      "w": 126,
+      "h": 67,
+      "rotation": 0,
+      "flip": false,
+      "label": "Balcão"
+    },
+    {
+      "id": "mrmlm85u06",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "table",
+      "x": 301.2213423773606,
+      "y": -19.375568468453316,
+      "w": 151,
+      "h": 60,
+      "rotation": 0,
+      "flip": false,
+      "label": "Pia + Armario"
+    },
+    {
+      "id": "mrmlriyq07",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "fridge",
+      "x": 412.82435467579717,
+      "y": -22.75245986606791,
+      "w": 51,
+      "h": 40,
+      "rotation": 0,
+      "flip": false,
+      "label": "Fogão"
+    },
+    {
+      "id": "mrmthbue05",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "table",
+      "x": 8.51825646431606,
+      "y": 67.18793200502202,
+      "w": 60,
+      "h": 34,
+      "rotation": 180,
+      "flip": false,
+      "label": "Rack (generic)"
+    },
+    {
+      "id": "msfxw6i503",
+      "kind": "item",
+      "layer": "furniture",
+      "item": "fridge",
+      "x": 187.26413156066923,
+      "y": -13.469509451737629,
+      "w": 60,
+      "h": 64,
+      "rotation": 0,
+      "flip": false,
+      "label": "Geladeira"
+    }
+  ],
+  "layers": {
+    "structure": {
+      "visible": true,
+      "locked": false
+    },
+    "furniture": {
+      "visible": true,
+      "locked": false
+    },
+    "plumbing": {
+      "visible": false,
+      "locked": false
+    },
+    "electrical": {
+      "visible": false,
+      "locked": false
+    },
+    "dimensions": {
+      "visible": true,
+      "locked": true
+    },
+    "annotations": {
+      "visible": true,
+      "locked": true
+    }
+  },
+  "customItems": {}
+}
